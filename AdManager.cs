@@ -10,20 +10,35 @@ public class AdManager : MonoBehaviour
     //The IronSource guide needs to be referanced to find the content in the unavailible demo button scripts.
     //The IronSource guide is found here: https://developers.is.com/ironsource-mobile/unity/unity-plugin/#step-6
     //The IronSource ad rewards guide is here: https://developers.is.com/ironsource-mobile/unity/rewarded-video-integration-unity/#step-1
+    //Find the IronSourceDemoScript for an example of this AdManager script.
 
 
     [SerializeField] private TextMeshProUGUI adButtonText;
 
     void OnApplicationPause(bool isPaused)
     {
+        Debug.Log("unity-script: OnApplicationPause = " + isPaused);
         IronSource.Agent.onApplicationPause(isPaused);
     }
 
     private void Start()
     {
-        IronSource.Agent.init("1acd0d105", IronSourceAdUnits.REWARDED_VIDEO);
+#if UNITY_ANDROID
+        string appKey = "1acd0d105";
+#elif UNITY_IPHONE
+        string appKey = "1acd0d105";
+#else
+        string appKey = "unexpected_platform";
+#endif
 
+        Debug.Log("unity-script: IronSource.Agent.validateIntegration");
         IronSource.Agent.validateIntegration();
+
+        Debug.Log("unity-script: unity version" + IronSource.unityVersion());
+
+        // SDK init
+        Debug.Log("unity-script: IronSource.Agent.init");
+        IronSource.Agent.init(appKey);
     }
 
     private void OnEnable()
@@ -48,22 +63,16 @@ public class AdManager : MonoBehaviour
     //Rewarded buttons
     public void ShowRewardedAd()
     {
-        //Pause game.
-        Time.timeScale = 0f;
+        IronSource.Agent.showRewardedVideo();
 
+        Debug.Log("unity-script: ShowRewardedVideoButtonClicked");
         if (IronSource.Agent.isRewardedVideoAvailable())
         {
-            Debug.Log("ShowRewardedAd succeded");
-
-            //Show the ad. It should be available.
             IronSource.Agent.showRewardedVideo();
         }
         else
         {
-            Debug.Log("ShowRewardedAd failed");
-
-            //Try to show the ad even if unavailable.
-            IronSource.Agent.showRewardedVideo();
+            Debug.Log("unity-script: IronSource.Agent.isRewardedVideoAvailable - False");
         }
     }
 
@@ -74,9 +83,6 @@ public class AdManager : MonoBehaviour
         //This is the most important Ad callback. This is where to give the player a reward.
         Debug.Log("##################### AdManager - REWARD PLAYER #####################");
         adButtonText.text = "The Ad worked! Have a reward.";
-
-        //Unpause game.
-        Time.timeScale = 1f;
     }
 
 
